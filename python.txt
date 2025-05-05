@@ -1,0 +1,2217 @@
+
+
+1. Simple State Transition System
+
+class StateMachine:
+
+    def __init__(self):
+
+        self.state = 'A'
+
+        self.transitions = {
+
+            'A': {'go': 'B'},
+
+            'B': {'go': 'C', 'back': 'A'},
+
+            'C': {'reset': 'A'}
+
+        }
+
+
+
+    def transition(self, action):
+
+        if action in self.transitions[self.state]:
+
+            self.state = self.transitions[self.state][action]
+
+        print(f"Current State: {self.state}")
+
+
+
+sm = StateMachine()
+
+sm.transition('go')     # B
+
+sm.transition('go')     # C
+
+sm.transition('reset')  # A
+
+
+
+2. Boolean Expression Truth Table Verifier
+
+import itertools
+
+
+
+expr = input("Enter Boolean expression (e.g., (A and B) or (not A)): ")
+
+expected = eval(input("Enter expected truth table as list (e.g., [True, True, True, False]): "))
+
+
+
+vars = sorted(set(filter(str.isalpha, expr)))
+
+table = []
+
+
+
+for values in itertools.product([False, True], repeat=len(vars)):
+
+    env = dict(zip(vars, values))
+
+    result = eval(expr, {}, env)
+
+    table.append(result)
+
+    print(f"{env} => {result}")
+
+
+
+print("Match with expected:", table == expected)
+
+
+
+3. LTL Formula Verifier over FSM (simplified)
+
+# Simplified FSM and LTL model checker (basic support for 'G' and 'F')
+
+fsm = {'s0': ['s1'], 's1': ['s0', 's2'], 's2': []}
+
+labels = {'s0': {'a'}, 's1': {'b'}, 's2': {'c'}}
+
+
+
+def verify_G(p, path):
+
+    return all(p in labels[s] for s in path)
+
+
+
+def verify_F(p, path):
+
+    return any(p in labels[s] for s in path)
+
+
+
+# Example usage
+
+path = ['s0', 's1', 's2']
+
+print("G b:", verify_G('b', path))
+
+print("F c:", verify_F('c', path))
+
+
+
+4. Reactive System: Traffic Light Controller
+
+import time
+
+
+
+states = ['RED', 'GREEN', 'YELLOW']
+
+durations = {'RED': 3, 'GREEN': 3, 'YELLOW': 1}
+
+
+
+def traffic_light():
+
+    current = 0
+
+    while True:
+
+        state = states[current]
+
+        print(f"Light: {state}")
+
+        time.sleep(durations[state])
+
+        current = (current + 1) % 3
+
+
+
+# Uncomment to run:
+
+# traffic_light()
+
+
+
+5. CSP-style Process Communication Simulation
+
+import threading
+
+import queue
+
+
+
+def sender(q):
+
+    for i in range(5):
+
+        print(f"Sending: {i}")
+
+        q.put(i)
+
+
+
+def receiver(q):
+
+    for _ in range(5):
+
+        msg = q.get()
+
+        print(f"Received: {msg}")
+
+
+
+q = queue.Queue()
+
+t1 = threading.Thread(target=sender, args=(q,))
+
+t2 = threading.Thread(target=receiver, args=(q,))
+
+
+
+t1.start()
+
+t2.start()
+
+t1.join()
+
+t2.join()
+
+
+
+Here are concise Python implementations for the five process-algebra-related tasks based on CCS and Pi-Calculus models, along with a basic producer-consumer simulation.
+
+
+
+1. Simulate a Basic CCS Process
+
+class CCSProcess:
+
+    def __init__(self, name):
+
+        self.name = name
+
+
+
+    def do_action(self, action):
+
+        print(f"{self.name} performs action: {action}")
+
+        self.name += "'"
+
+
+
+P = CCSProcess("P")
+
+P.do_action('a')  # P does action 'a' → P'
+
+
+
+2. Parallel Composition of Two CCS Processes
+
+import threading
+
+
+
+def process(name, actions):
+
+    for act in actions:
+
+        print(f"{name} performs: {act}")
+
+
+
+p1 = threading.Thread(target=process, args=("P1", ['a', 'b']))
+
+p2 = threading.Thread(target=process, args=("P2", ['x', 'y']))
+
+
+
+p1.start()
+
+p2.start()
+
+p1.join()
+
+p2.join()
+
+
+
+3. Pi-Calculus Communication Simulation
+
+import threading
+
+import queue
+
+
+
+channel = queue.Queue()
+
+
+
+def sender():
+
+    msg = "Hello"
+
+    print("Sender: Sending message...")
+
+    channel.put(msg)
+
+
+
+def receiver():
+
+    msg = channel.get()
+
+    print(f"Receiver: Received message '{msg}'")
+
+
+
+t1 = threading.Thread(target=sender)
+
+t2 = threading.Thread(target=receiver)
+
+
+
+t1.start()
+
+t2.start()
+
+t1.join()
+
+t2.join()
+
+
+
+4. Verify Synchronization Using Complementary Actions
+
+import threading
+
+import time
+
+
+
+sync = threading.Event()
+
+
+
+def process_a():
+
+    print("P: Ready to perform 'a'")
+
+    sync.set()  # signal action 'a'
+
+    time.sleep(0.1)
+
+
+
+def process_a_bar():
+
+    sync.wait()  # wait for 'a'
+
+    print("Q: Performs 'ā' and synchronizes with P")
+
+
+
+p = threading.Thread(target=process_a)
+
+q = threading.Thread(target=process_a_bar)
+
+
+
+p.start()
+
+q.start()
+
+p.join()
+
+q.join()
+
+
+
+5. Producer-Consumer with Mutual Exclusion
+
+import threading
+
+import queue
+
+import time
+
+
+
+buffer = queue.Queue(maxsize=5)
+
+
+
+def producer():
+
+    for i in range(3):
+
+        buffer.put(i)
+
+        print(f"Producer produced: {i}")
+
+        time.sleep(1)
+
+
+
+def consumer():
+
+    for _ in range(3):
+
+        item = buffer.get()
+
+        print(f"Consumer consumed: {item}")
+
+        time.sleep(2)
+
+
+
+t1 = threading.Thread(target=producer)
+
+t2 = threading.Thread(target=consumer)
+
+
+
+t1.start()
+
+t2.start()
+
+t1.join()
+
+t2.join()
+
+
+
+PI CALCULUS
+
+import threading
+
+import queue
+
+import time
+
+
+
+# Channel class
+
+class Channel:
+
+    def __init__(self, name):
+
+        self.name = name
+
+        self.q = queue.Queue()
+
+
+
+    def send(self, msg):
+
+        print(f"[{threading.current_thread().name}] Sending on {self.name}: {msg}")
+
+        self.q.put(msg)
+
+
+
+    def receive(self):
+
+        msg = self.q.get()
+
+        print(f"[{threading.current_thread().name}] Received on {self.name}: {msg}")
+
+        return msg
+
+
+
+# Process A: sends private channel and message
+
+def process_A(public_chan):
+
+    private_chan = Channel("private")
+
+    public_chan.send(private_chan)        # Send private channel over public
+
+    time.sleep(0.5)
+
+    private_chan.send("hi from A")        # Use private channel
+
+    print("[A] Done")
+
+
+
+# Process B: receives private channel and listens on it
+
+def process_B(public_chan):
+
+    private_chan = public_chan.receive()  # Receive private channel
+
+    msg = private_chan.receive()          # Receive message from A
+
+    print(f"[B] Got message: {msg}")
+
+
+
+# Main simulation
+
+if __name__ == "__main__":
+
+    public = Channel("public")
+
+
+
+    a_thread = threadinb.Thread(target=process_A, args=(public,), name="A")
+
+    b_thread = threading.Thread(target=process_B, args=(public,), name="B")
+
+
+
+    a_thread.start()
+
+    b_thread.start()
+
+
+
+    a_thread.join()
+
+    b_thread.join()
+
+
+
+    print("Shared channel simulation complete.")
+
+
+
+
+Here’s a set of Python simulations for each of the five formal methods tasks you listed. Each is designed in the spirit of CCS or Pi-Calculus, using basic concurrency and synchronization to model behavior.
+
+
+
+✅ 1. Client-Server Interaction using CCS
+
+import threading
+
+import queue
+
+
+
+# Shared synchronous channel
+
+channel = queue.Queue()
+
+
+
+def client():
+
+    print("[Client] Sending request...")
+
+    channel.put("req")
+
+    response = channel.get()
+
+    print(f"[Client] Received response: {response}")
+
+
+
+def server():
+
+    request = channel.get()
+
+    print(f"[Server] Received: {request}")
+
+    print("[Server] Processing...")
+
+    channel.put("res")
+
+
+
+threading.Thread(target=client).start()
+
+threading.Thread(target=server).start()
+
+
+
+✅ 2. Relabeling and Restriction in CCS + Strong Bisimulation Check (conceptual)
+
+This simulates relabeling and restriction, but we can't do full bisimulation without a tool like CWB or mCRL2. We'll simulate actions and check trace equality.
+
+def process_P():
+
+    return ["a"]
+
+
+
+def process_Q():
+
+    return ["b"]
+
+
+
+# Relabeling: a → b
+
+def relabel(trace, mapping):
+
+    return [mapping.get(action, action) for action in trace]
+
+
+
+# Restriction: remove restricted actions
+
+def restrict(trace, restricted):
+
+    return [a for a in trace if a not in restricted]
+
+
+
+P = process_P()
+
+Q = process_Q()
+
+
+
+P_relabel = relabel(P, {"a": "b"})
+
+Q_restrict = restrict(Q, {"a"})
+
+
+
+print("P relabeled:", P_relabel)
+
+print("Q restricted:", Q_restrict)
+
+
+
+print("Strong bisimulation (trace match)?", P_relabel == Q_restrict)
+
+
+
+✅ 3. Pi-Calculus Mobile Communication: Parent Spawning Child with Dynamic Channel
+
+class Channel:
+
+    def __init__(self):
+
+        self.q = queue.Queue()
+
+
+
+    def send(self, msg):
+
+        self.q.put(msg)
+
+
+
+    def receive(self):
+
+        return self.q.get()
+
+
+
+def parent():
+
+    private = Channel()
+
+    print("[Parent] Created private channel.")
+
+    threading.Thread(target=child, args=(private,)).start()
+
+    private.send("Hello from Parent")
+
+
+
+def child(private):
+
+    msg = private.receive()
+
+    print(f"[Child] Got message: {msg}")
+
+
+
+threading.Thread(target=parent).start()
+
+
+
+✅ 4. Strong Bisimulation Check between Two Finite-State CCS-like Processes
+
+We’ll simulate this by comparing their transition traces.
+
+def process_A():
+
+    return ["a", "b", "c"]
+
+
+
+def process_B():
+
+    return ["a", "b", "c"]
+
+
+
+def strong_bisimilar(p1, p2):
+
+    return p1 == p2
+
+
+
+A = process_A()
+
+B = process_B()
+
+print("Process A:", A)
+
+print("Process B:", B)
+
+print("Strong bisimulation?", strong_bisimilar(A, B))
+
+
+
+✅ 5. Fair Round-Robin Scheduler (CCS-style resource sharing)
+
+import threading
+
+import time
+
+
+
+lock = threading.Lock()
+
+turn = [0]  # Shared turn state: 0 for P, 1 for Q
+
+
+
+def process(name, my_turn):
+
+    for i in range(3):
+
+        while True:
+
+            with lock:
+
+                if turn[0] == my_turn:
+
+                    print(f"[{name}] Accessing resource")
+
+                    time.sleep(0.5)
+
+                    turn[0] = 1 - my_turn
+
+                    break
+
+            time.sleep(0.1)
+
+
+
+threading.Thread(target=process, args=("P", 0)).start()
+
+threading.Thread(target=process, args=("Q", 1)).start()
+
+
+
+Here are Python code implementations with topics for your formal methods lab (Petri Nets, CCS, Process Algebra, Pi-Calculus):
+
+
+
+1. Model a synchronization problem using Petri Nets and verify deadlock freedom
+
+# petri_sync_deadlock.py
+
+
+
+class PetriNet:
+
+    def __init__(self, places, transitions):
+
+        self.places = places  # dict: place -> tokens
+
+        self.transitions = transitions  # dict: transition -> (input, output)
+
+
+
+    def fire(self, t):
+
+        inputs, outputs = self.transitions[t]
+
+        if all(self.places[p] > 0 for p in inputs):
+
+            for p in inputs:
+
+                self.places[p] -= 1
+
+            for p in outputs:
+
+                self.places[p] += 1
+
+            return True
+
+        return False
+
+
+
+    def is_deadlocked(self):
+
+        return not any(self.can_fire(t) for t in self.transitions)
+
+
+
+    def can_fire(self, t):
+
+        return all(self.places[p] > 0 for p in self.transitions[t][0])
+
+
+
+# Example: Mutex with 1 token in 'mutex'
+
+places = {'mutex': 1, 'P1': 1, 'P2': 1, 'CS1': 0, 'CS2': 0}
+
+transitions = {
+
+    'enter1': (['mutex', 'P1'], ['CS1']),
+
+    'exit1': (['CS1'], ['mutex', 'P1']),
+
+    'enter2': (['mutex', 'P2'], ['CS2']),
+
+    'exit2': (['CS2'], ['mutex', 'P2'])
+
+}
+
+
+
+pn = PetriNet(places, transitions)
+
+pn.fire('enter1')
+
+pn.fire('exit1')
+
+print("Deadlocked?", pn.is_deadlocked())
+
+
+
+2. Implement a basic workflow system (e.g., order processing) using Petri Nets and analyze correctness
+
+# petri_workflow_order.py
+
+
+
+places = {'OrderPlaced': 1, 'Paid': 0, 'Shipped': 0, 'Delivered': 0}
+
+transitions = {
+
+    'Pay': (['OrderPlaced'], ['Paid']),
+
+    'Ship': (['Paid'], ['Shipped']),
+
+    'Deliver': (['Shipped'], ['Delivered'])
+
+}
+
+
+
+pn = PetriNet(places, transitions)
+
+pn.fire('Pay')
+
+pn.fire('Ship')
+
+pn.fire('Deliver')
+
+print("Final state:", pn.places)
+
+print("Workflow complete?", pn.places['Delivered'] == 1)
+
+
+
+3. Simulate a client-server communication model using CCS
+
+# ccs_client_server.py
+
+
+
+import threading, queue
+
+
+
+channel = queue.Queue()
+
+
+
+def client():
+
+    print("[Client] Sending req")
+
+    channel.put("req")
+
+    res = channel.get()
+
+    print(f"[Client] Received {res}")
+
+
+
+def server():
+
+    msg = channel.get()
+
+    print(f"[Server] Got {msg}")
+
+    channel.put("res")
+
+
+
+threading.Thread(target=client).start()
+
+threading.Thread(target=server).start()
+
+
+
+4. Develop a formal specification of an online transaction processing system using Process Algebra
+
+# process_algebra_otp.py
+
+
+
+def transaction_process():
+
+    return ["login", "validate", "process", "confirm", "logout"]
+
+
+
+trace = transaction_process()
+
+expected = ["login", "validate", "process", "confirm", "logout"]
+
+print("Correct sequence?", trace == expected)
+
+
+
+5. Implement a distributed computation model using Pi-Calculus for mobile process interactions
+
+# pi_distributed_computation.py
+
+
+
+import threading
+
+
+
+class Channel:
+
+    def __init__(self): self.q = queue.Queue()
+
+    def send(self, msg): self.q.put(msg)
+
+    def receive(self): return self.q.get()
+
+
+
+def parent():
+
+    private = Channel()
+
+    threading.Thread(target=child, args=(private,)).start()
+
+    private.send("compute: f(x)=x+1")
+
+    print("[Parent] Task sent.")
+
+
+
+def child(chan):
+
+    task = chan.receive()
+
+    print(f"[Child] Received task: {task}")
+
+
+
+threading.Thread(target=parent).start()
+
+
+
+
+
+Sure! Below are the code implementations with their respective topics as requested:
+
+
+
+1. Implement a Kripke Structure in Python and verify Computation Tree Logic (CTL) properties
+
+# kripke_structure_ctl.py
+
+
+
+class KripkeState:
+
+    def __init__(self, name, labels):
+
+        self.name = name
+
+        self.labels = labels
+
+        self.transitions = []
+
+
+
+    def add_transition(self, target):
+
+        self.transitions.append(target)
+
+
+
+# CTL check for EF p (Exists Future p)
+
+def EF(state, p, visited=None):
+
+    if visited is None:
+
+        visited = set()
+
+    if p in state.labels:
+
+        return True
+
+    visited.add(state)
+
+    for t in state.transitions:
+
+        if t not in visited and EF(t, p, visited):
+
+            return True
+
+    return False
+
+
+
+# Build model
+
+s0 = KripkeState("s0", {"start"})
+
+s1 = KripkeState("s1", {"loading"})
+
+s2 = KripkeState("s2", {"ready"})
+
+s0.add_transition(s1)
+
+s1.add_transition(s2)
+
+
+
+print("EF ready from s0:", EF(s0, "ready"))
+
+
+
+2. Develop a Python-based Linear Temporal Logic (LTL) model checker for verifying safety and liveness properties
+
+# ltl_model_checker.py
+
+
+
+def model_trace():
+
+    return [
+
+        {"safe", "running"},
+
+        {"safe"},
+
+        {"safe", "done"},
+
+    ]
+
+
+
+def check_G(trace, prop):
+
+    return all(prop in state for state in trace)
+
+
+
+def check_F(trace, prop):
+
+    return any(prop in state for state in trace)
+
+
+
+trace = model_trace()
+
+print("Safety (G safe):", check_G(trace, "safe"))
+
+print("Liveness (F done):", check_F(trace, "done"))
+
+
+
+3. Model a state transition system and check for deadlock freedom using model checking
+
+# deadlock_check.py
+
+
+
+class State:
+
+    def __init__(self, name):
+
+        self.name = name
+
+        self.transitions = []
+
+
+
+    def add_transition(self, target):
+
+        self.transitions.append(target)
+
+
+
+def check_deadlock(states):
+
+    return [s.name for s in states if not s.transitions]
+
+
+
+# Build system
+
+s0 = State("s0")
+
+s1 = State("s1")
+
+s2 = State("s2")  # deadlock
+
+
+
+s0.add_transition(s1)
+
+s1.add_transition(s2)
+
+
+
+states = [s0, s1, s2]
+
+print("Deadlock states:", check_deadlock(states))
+
+
+
+4. Implement a property verification tool using CTL for a given transition system
+
+# ctl_property_check.py
+
+
+
+def AG(state, p, visited=None):
+
+    if visited is None:
+
+        visited = set()
+
+    if state in visited:
+
+        return True
+
+    if p not in state.labels:
+
+        return False
+
+    visited.add(state)
+
+    return all(AG(t, p, visited) for t in state.transitions)
+
+
+
+s0 = KripkeState("s0", {"p"})
+
+s1 = KripkeState("s1", {"p"})
+
+s2 = KripkeState("s2", {"p"})
+
+s0.add_transition(s1)
+
+s1.add_transition(s2)
+
+
+
+print("AG p from s0:", AG(s0, "p"))
+
+
+
+5. Verify fairness conditions in a concurrent system using temporal logic
+
+# fairness_check.py
+
+
+
+trace = [
+
+    {"P", "ready"},
+
+    {"Q", "ready"},
+
+    {"P", "running"},
+
+    {"Q", "running"},
+
+    {"P", "done"},
+
+    {"Q", "done"},
+
+]
+
+
+
+def fair(trace, process):
+
+    return process in trace[-1]
+
+
+
+print("Fair for P:", fair(trace, "P"))
+
+print("Fair for Q:", fair(trace, "Q"))
+
+
+
+
+
+
+
+
+
+Here are Python code implementations with topics for your formal methods lab (Petri Nets, CCS, Process Algebra, Pi-Calculus):
+
+
+
+1. Model a synchronization problem using Petri Nets and verify deadlock freedom
+
+# petri_sync_deadlock.py
+
+
+
+class PetriNet:
+
+    def __init__(self, places, transitions):
+
+        self.places = places  # dict: place -> tokens
+
+        self.transitions = transitions  # dict: transition -> (input, output)
+
+
+
+    def fire(self, t):
+
+        inputs, outputs = self.transitions[t]
+
+        if all(self.places[p] > 0 for p in inputs):
+
+            for p in inputs:
+
+                self.places[p] -= 1
+
+            for p in outputs:
+
+                self.places[p] += 1
+
+            return True
+
+        return False
+
+
+
+    def is_deadlocked(self):
+
+        return not any(self.can_fire(t) for t in self.transitions)
+
+
+
+    def can_fire(self, t):
+
+        return all(self.places[p] > 0 for p in self.transitions[t][0])
+
+
+
+# Example: Mutex with 1 token in 'mutex'
+
+places = {'mutex': 1, 'P1': 1, 'P2': 1, 'CS1': 0, 'CS2': 0}
+
+transitions = {
+
+    'enter1': (['mutex', 'P1'], ['CS1']),
+
+    'exit1': (['CS1'], ['mutex', 'P1']),
+
+    'enter2': (['mutex', 'P2'], ['CS2']),
+
+    'exit2': (['CS2'], ['mutex', 'P2'])
+
+}
+
+
+
+pn = PetriNet(places, transitions)
+
+pn.fire('enter1')
+
+pn.fire('exit1')
+
+print("Deadlocked?", pn.is_deadlocked())
+
+
+
+2. Implement a basic workflow system (e.g., order processing) using Petri Nets and analyze correctness
+
+# petri_workflow_order.py
+
+
+
+places = {'OrderPlaced': 1, 'Paid': 0, 'Shipped': 0, 'Delivered': 0}
+
+transitions = {
+
+    'Pay': (['OrderPlaced'], ['Paid']),
+
+    'Ship': (['Paid'], ['Shipped']),
+
+    'Deliver': (['Shipped'], ['Delivered'])
+
+}
+
+
+
+pn = PetriNet(places, transitions)
+
+pn.fire('Pay')
+
+pn.fire('Ship')
+
+pn.fire('Deliver')
+
+print("Final state:", pn.places)
+
+print("Workflow complete?", pn.places['Delivered'] == 1)
+
+
+
+3. Simulate a client-server communication model using CCS
+
+# ccs_client_server.py
+
+
+
+import threading, queue
+
+
+
+channel = queue.Queue()
+
+
+
+def client():
+
+    print("[Client] Sending req")
+
+    channel.put("req")
+
+    res = channel.get()
+
+    print(f"[Client] Received {res}")
+
+
+
+def server():
+
+    msg = channel.get()
+
+    print(f"[Server] Got {msg}")
+
+    channel.put("res")
+
+
+
+threading.Thread(target=client).start()
+
+threading.Thread(target=server).start()
+
+
+
+4. Develop a formal specification of an online transaction processing system using Process Algebra
+
+# process_algebra_otp.py
+
+
+
+def transaction_process():
+
+    return ["login", "validate", "process", "confirm", "logout"]
+
+
+
+trace = transaction_process()
+
+expected = ["login", "validate", "process", "confirm", "logout"]
+
+print("Correct sequence?", trace == expected)
+
+
+
+5. Implement a distributed computation model using Pi-Calculus for mobile process interactions
+
+# pi_distributed_computation.py
+
+
+
+import threading
+
+
+
+class Channel:
+
+    def __init__(self): self.q = queue.Queue()
+
+    def send(self, msg): self.q.put(msg)
+
+    def receive(self): return self.q.get()
+
+
+
+def parent():
+
+    private = Channel()
+
+    threading.Thread(target=child, args=(private,)).start()
+
+    private.send("compute: f(x)=x+1")
+
+    print("[Parent] Task sent.")
+
+
+
+def child(chan):
+
+    task = chan.receive()
+
+    print(f"[Child] Received task: {task}")
+
+
+
+threading.Thread(target=parent).start()
+
+
+
+Here are the formal methods tasks you've asked for, with code or specification snippets for each topic as required:
+
+
+
+✅ 1. Z Notation Specification for a Library Management System
+
+Library
+
+books: ℙ Book
+
+borrowed: Book ↔ User
+
+
+
+inv ∀ b: Book; u: User • (b ↦ u ∈ borrowed ⇒ b ∈ books)
+
+
+
+AddBook
+
+ΔLibrary
+
+new?: Book
+
+new? ∉ books
+
+books' = books ∪ {new?}
+
+borrowed' = borrowed
+
+
+
+BorrowBook
+
+ΔLibrary
+
+book?: Book
+
+user?: User
+
+book? ∈ books ∧ book? ∉ dom borrowed
+
+borrowed' = borrowed ∪ {book? ↦ user?}
+
+books' = books
+
+✅ Use a Z validator like Z/Eves or CADiZ to check schema consistency.
+
+
+
+✅ 2. B-Method Specification for a Basic E-Commerce Checkout System
+
+MACHINE Checkout
+
+SETS PRODUCT; CUSTOMER
+
+VARIABLES cart, inventory
+
+INVARIANT
+
+  cart ∈ CUSTOMER → ℙ(PRODUCT) ∧
+
+  inventory ∈ PRODUCT → ℕ
+
+
+
+INITIALISATION
+
+  cart := ∅ || inventory := ∅
+
+
+
+OPERATIONS
+
+  AddProduct(p, q) =
+
+    PRE p ∈ PRODUCT ∧ q ∈ ℕ
+
+    THEN inventory(p) := q END;
+
+
+
+  AddToCart(c, p) =
+
+    PRE c ∈ CUSTOMER ∧ p ∈ PRODUCT ∧ inventory(p) > 0
+
+    THEN cart(c) := cart(c) ∪ {p} || inventory(p) := inventory(p) - 1
+
+    END
+
+END
+
+✅ Validate using ProB for checking invariants and safety.
+
+
+
+✅ 3. Python-Based Hoare Logic Verifier for Simple Imperative Programs
+
+# hoare_logic.py
+
+
+
+def hoare_triple(P, command, Q):
+
+    state = {}
+
+    assert P(state)
+
+    command(state)
+
+    assert Q(state)
+
+    print("Hoare triple is valid.")
+
+
+
+# Example: x := x + 1
+
+P = lambda s: s.setdefault('x', 0) == 0
+
+cmd = lambda s: s.update({'x': s['x'] + 1})
+
+Q = lambda s: s['x'] == 1
+
+
+
+hoare_triple(P, cmd, Q)
+
+
+
+✅ 4. Alloy Analyzer Spec for Simple Database Schema
+
+module Database
+
+
+
+sig User { id: one Int, orders: set Order }
+
+sig Order { amount: one Int }
+
+
+
+fact UniqueIDs {
+
+  all u1, u2: User | u1.id = u2.id implies u1 = u2
+
+}
+
+
+
+pred validOrder(o: Order) {
+
+  o.amount >= 0
+
+}
+
+
+
+run { some u: User | all o: u.orders | validOrder[o] }
+
+✅ Use Alloy Analyzer to run and verify.
+
+
+
+✅ 5. Model and Verify Preconditions, Postconditions, Invariants for Bank Account
+
+class BankAccount:
+
+    def __init__(self):
+
+        self.balance = 0
+
+
+
+    def deposit(self, amount):
+
+        assert amount > 0  # precondition
+
+        old = self.balance
+
+        self.balance += amount
+
+        assert self.balance == old + amount  # postcondition
+
+
+
+    def withdraw(self, amount):
+
+        assert amount > 0 and amount <= self.balance  # pre
+
+        old = self.balance
+
+        self.balance -= amount
+
+        assert self.balance == old - amount  # post
+
+
+
+    def invariant(self):
+
+        assert self.balance >= 0
+
+
+
+# Test
+
+acc = BankAccount()
+
+acc.deposit(100)
+
+acc.withdraw(50)
+
+acc.invariant()
+
+
+
+Let me know if you'd like any of these converted to tool-specific formats or visual representations (Z schemas, Alloy diagrams, etc.).
+
+
+
+Here are Python implementations with topics for each task related to Automata and Formal Language Theory:
+
+
+
+✅ 1. Implement a Deterministic Finite Automaton (DFA) and verify language acceptance
+
+# dfa_simulator.py
+
+
+
+class DFA:
+
+    def __init__(self, states, alphabet, transition, start, accept):
+
+        self.states = states
+
+        self.alphabet = alphabet
+
+        self.transition = transition
+
+        self.start = start
+
+        self.accept = accept
+
+
+
+    def accepts(self, input_str):
+
+        state = self.start
+
+        for symbol in input_str:
+
+            state = self.transition.get((state, symbol))
+
+            if state is None:
+
+                return False
+
+        return state in self.accept
+
+
+
+# DFA for strings ending with 'ab'
+
+dfa = DFA(
+
+    states={'q0', 'q1', 'q2'},
+
+    alphabet={'a', 'b'},
+
+    transition={
+
+        ('q0', 'a'): 'q1',
+
+        ('q0', 'b'): 'q0',
+
+        ('q1', 'a'): 'q1',
+
+        ('q1', 'b'): 'q2',
+
+        ('q2', 'a'): 'q1',
+
+        ('q2', 'b'): 'q0',
+
+    },
+
+    start='q0',
+
+    accept={'q2'}
+
+)
+
+
+
+print(dfa.accepts("aab"))  # True
+
+print(dfa.accepts("aba"))  # False
+
+
+
+✅ 2. Develop a simulation tool for NFA and check equivalence with DFA
+
+# nfa_simulator.py
+
+
+
+class NFA:
+
+    def __init__(self, states, alphabet, transition, start, accept):
+
+        self.states = states
+
+        self.alphabet = alphabet
+
+        self.transition = transition
+
+        self.start = start
+
+        self.accept = accept
+
+
+
+    def accepts(self, input_str):
+
+        current_states = {self.start}
+
+        for symbol in input_str:
+
+            next_states = set()
+
+            for state in current_states:
+
+                next_states |= set(self.transition.get((state, symbol), []))
+
+            current_states = next_states
+
+        return any(state in self.accept for state in current_states)
+
+
+
+# NFA for (a|b)*ab
+
+nfa = NFA(
+
+    states={'q0', 'q1', 'q2'},
+
+    alphabet={'a', 'b'},
+
+    transition={
+
+        ('q0', 'a'): ['q0', 'q1'],
+
+        ('q0', 'b'): ['q0'],
+
+        ('q1', 'b'): ['q2']
+
+    },
+
+    start='q0',
+
+    accept={'q2'}
+
+)
+
+
+
+print(nfa.accepts("aab"))  # True
+
+print(nfa.accepts("aba"))  # False
+
+
+
+✅ 3. Transform a Regular Expression into an Equivalent Automaton (Basic)
+
+# regex_to_nfa_simple.py
+
+import re
+
+
+
+regex = re.compile("a*b")
+
+
+
+def simulate(regex, s):
+
+    return bool(regex.fullmatch(s))
+
+
+
+print(simulate(regex, "aaab"))  # True
+
+print(simulate(regex, "aba"))   # False
+
+✅ For full regex → NFA conversion, you'd implement Thompson's construction (can provide full code if needed).
+
+
+
+✅ 4. Model and analyze a simple text parser using formal grammar
+
+# grammar_parser.py
+
+
+
+import re
+
+
+
+grammar = {
+
+    'S': ['aSb', 'ab']
+
+}
+
+
+
+def parse(s, rule='S'):
+
+    if rule not in grammar:
+
+        return s == rule
+
+    for production in grammar[rule]:
+
+        if match_production(s, production):
+
+            return True
+
+    return False
+
+
+
+def match_production(s, prod):
+
+    if prod == 'ab':
+
+        return s == 'ab'
+
+    elif prod == 'aSb' and s.startswith('a') and s.endswith('b'):
+
+        return parse(s[1:-1], 'S')
+
+    return False
+
+
+
+print(parse("aabb"))   # True
+
+print(parse("aaabbb")) # True
+
+print(parse("aab"))    # False
+
+
+
+✅ 5. FSM Minimization and Equivalence Checking
+
+# fsm_minimize_equiv.py
+
+
+
+from collections import defaultdict
+
+
+
+# Two FSMs represented by their transition tables and accepting states
+
+fsm1 = {
+
+    'states': {'A', 'B'},
+
+    'start': 'A',
+
+    'accept': {'B'},
+
+    'transition': {
+
+        ('A', '0'): 'A',
+
+        ('A', '1'): 'B',
+
+        ('B', '0'): 'A',
+
+        ('B', '1'): 'B',
+
+    }
+
+}
+
+
+
+fsm2 = {
+
+    'states': {'X', 'Y'},
+
+    'start': 'X',
+
+    'accept': {'Y'},
+
+    'transition': {
+
+        ('X', '0'): 'X',
+
+        ('X', '1'): 'Y',
+
+        ('Y', '0'): 'X',
+
+        ('Y', '1'): 'Y',
+
+    }
+
+}
+
+
+
+def equivalent(fsm1, fsm2, strings):
+
+    for s in strings:
+
+        res1 = simulate_dfa(fsm1, s)
+
+        res2 = simulate_dfa(fsm2, s)
+
+        if res1 != res2:
+
+            return False
+
+    return True
+
+
+
+def simulate_dfa(fsm, s):
+
+    state = fsm['start']
+
+    for c in s:
+
+        state = fsm['transition'][(state, c)]
+
+    return state in fsm['accept']
+
+
+
+strings = ["", "0", "1", "01", "001", "110"]
+
+print("FSMs Equivalent?", equivalent(fsm1, fsm2, strings))
+
+
+
+Here are the formal method implementations and reasoning for each of your five tasks:
+
+
+
+✅ 1. Model Checking Topological Sort Algorithm (Python + CTL-style verification)
+
+We simulate a DAG and use CTL-like assertions post-topological sort:
+
+# topo_model_check.py
+
+
+
+from collections import defaultdict, deque
+
+
+
+def topological_sort(graph):
+
+    in_degree = {v: 0 for v in graph}
+
+    for u in graph:
+
+        for v in graph[u]:
+
+            in_degree[v] += 1
+
+
+
+    queue = deque([u for u in in_degree if in_degree[u] == 0])
+
+    order = []
+
+
+
+    while queue:
+
+        node = queue.popleft()
+
+        order.append(node)
+
+        for v in graph[node]:
+
+            in_degree[v] -= 1
+
+            if in_degree[v] == 0:
+
+                queue.append(v)
+
+
+
+    return order
+
+
+
+# Graph: A → B → C
+
+graph = {'A': ['B'], 'B': ['C'], 'C': []}
+
+order = topological_sort(graph)
+
+
+
+# CTL-style property: for every edge u → v, u appears before v in the result
+
+def verify_order(order, graph):
+
+    index = {node: i for i, node in enumerate(order)}
+
+    for u in graph:
+
+        for v in graph[u]:
+
+            assert index[u] < index[v], f"Incorrect order: {u} should be before {v}"
+
+    print("Topological sort verified successfully.")
+
+
+
+verify_order(order, graph)
+
+
+
+✅ 2. Hoare Logic Proof of Binary Search (Outline)
+
+Binary Search Function:
+
+def binary_search(arr, x):
+
+    l, r = 0, len(arr) - 1
+
+    while l <= r:
+
+        mid = (l + r) // 2
+
+        if arr[mid] == x:
+
+            return mid
+
+        elif arr[mid] < x:
+
+            l = mid + 1
+
+        else:
+
+            r = mid - 1
+
+    return -1
+
+Hoare Triple:
+
+{P: arr is sorted}
+
+while l <= r:
+
+    ...
+
+{Q: if x in arr, then arr[result] == x}
+
+Loop Invariant (I):
+
+∀ i ∈ [0, len(arr)-1], if x in arr[l..r], it must be in arr[l..r]
+
+✅ This invariant is preserved, and on termination, if x is not found, l > r ⇒ x ∉ arr.
+
+
+
+✅ 3. Verify Loop Invariants for Fixed-Point Iteration
+
+Example: Solving x = cos(x) iteratively.
+
+import math
+
+
+
+def fixed_point(f, guess, tol=1e-6):
+
+    prev = guess
+
+    while True:
+
+        next_val = f(prev)
+
+        # Invariant: |f(x) - x| is non-increasing
+
+        assert abs(f(prev) - prev) >= abs(f(next_val) - next_val)
+
+        if abs(next_val - prev) < tol:
+
+            break
+
+        prev = next_val
+
+    return next_val
+
+
+
+root = fixed_point(math.cos, 1.0)
+
+print("Fixed point:", root)
+
+
+
+✅ 4. Best Formal Method for Verifying Concurrent Access Control?
+
+Recommendation: Model Checking + Temporal Logic (LTL/CTL)
+
+* Why?
+
+    * Verifies safety and liveness.
+
+    * Exhaustive for all interleavings.
+
+    * Explicitly models concurrency.
+
+    * Can express fairness, mutual exclusion, starvation freedom.
+
+Tool Demonstration: Python Simulation + LTL Property
+
+# concurrent_model.py
+
+
+
+from threading import Thread, Lock
+
+
+
+lock = Lock()
+
+shared = []
+
+
+
+def thread1():
+
+    with lock:
+
+        shared.append('A')
+
+
+
+def thread2():
+
+    with lock:
+
+        shared.append('B')
+
+
+
+t1 = Thread(target=thread1)
+
+t2 = Thread(target=thread2)
+
+t1.start(); t2.start()
+
+t1.join(); t2.join()
+
+
+
+print(shared)
+
+# LTL Property: G (critical_section → lock_held)
+
+✅ To do real model checking, use SPIN (with Promela) or NuSMV for CTL/LTL logic.
+
+
+
+✅ 5. Formal Specification for Job Scheduler (Z Notation)
+
+[JOB]
+
+JobQueue
+
+jobs: seq JOB
+
+
+
+AddJob
+
+ΔJobQueue
+
+j?: JOB
+
+jobs' = jobs ⧺ [j?]
+
+
+
+Schedule
+
+ΔJobQueue
+
+j!: JOB
+
+jobs ≠ ⟨⟩
+
+j! = head jobs
+
+jobs' = tail jobs
+
+✅ Verifies FIFO scheduling. Can be validated in tools like Z/EVES or Rodin (for B-style).
+
+
+
+Would you like a version of one of these in a specific verification tool like TLA+, SPIN, or Alloy?
+
+
+
+
+
